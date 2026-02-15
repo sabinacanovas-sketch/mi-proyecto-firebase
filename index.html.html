@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Turnos FARKUAR</title>
+<style>
+body {margin:0;font-family:'Arial Black',sans-serif;background:#000;color:#fff;display:flex;flex-direction:column;align-items:center;padding:20px;}
+.container {background:#111;padding:20px;border-radius:15px;width:400px;text-align:center;box-shadow:0 0 25px rgba(255,255,255,0.1);border:2px solid white;margin-bottom:20px;}
+#listaTurnos p{margin:5px 0;padding:5px;border-bottom:1px solid #333;}
+button{padding:10px 20px;margin-top:15px;background:white;color:black;font-weight:bold;border:none;border-radius:8px;cursor:pointer;}
+button:hover{background:#ddd;}
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Turnos de la semana 💈</h1>
+  <div id="listaTurnos">Cargando turnos...</div>
+  <button id="btnRefrescar">Refrescar turnos</button>
+</div>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+// Configuración de Firebase
+const firebaseConfig = {
+  apiKey: "AIzaSyDeZXUm2FHAp9LewIIv9orjvb7Iw_9S3Jo",
+  authDomain: "farkuar-7b4e6.firebaseapp.com",
+  projectId: "farkuar-7b4e6",
+  storageBucket: "farkuar-7b4e6.firebasestorage.app",
+  messagingSenderId: "822551810172",
+  appId: "1:822551810172:web:005e784678510a9e7b79f9",
+  measurementId: "G-739E1D6848"
+};
+
+// Inicializar Firebase
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// Referencias DOM
+const listaTurnos = document.getElementById("listaTurnos");
+const btnRefrescar = document.getElementById("btnRefrescar");
+
+// Función para cargar turnos
+function cargarTurnos() {
+  listaTurnos.innerHTML = "Cargando turnos...";
+  
+  db.collection("turnos")
+    .orderBy("fechaHora")
+    .get()
+    .then(snapshot => {
+      listaTurnos.innerHTML = "";
+      if(snapshot.empty){
+        listaTurnos.innerHTML = "No hay turnos esta semana.";
+      } else {
+        snapshot.forEach(doc => {
+          const t = doc.data();
+          // Extraemos los campos seguros
+          const fecha = t.fecha || '';
+          const hora = t.hora || '';
+          const fechaHora = t.fechaHora || '';
+          const nombre = t.nombre || '';
+          const telefono = t.telefono || '';
+          // Backticks para HTML seguro
+          listaTurnos.innerHTML += `<p>${fecha} (${fechaHora})${hora} - ${nombre} (${telefono})</p>`;
+        });
+      }
+    })
+    .catch(err => {
+      listaTurnos.innerHTML = "Error al cargar los turnos";
+      console.error(err);
+    });
+}
+
+// Cargar turnos al inicio
+cargarTurnos();
+
+// Refrescar turnos al hacer clic
+btnRefrescar.addEventListener("click", cargarTurnos);
+</script>
+
+</body>
+</html>

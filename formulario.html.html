@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FARKUAR - Turnos</title>
+<style>
+body {margin:0;font-family:'Arial Black',sans-serif;background:#000;color:#fff;display:flex;justify-content:center;align-items:center;height:100vh;}
+.container {background:#111;padding:40px;border-radius:15px;width:350px;text-align:center;box-shadow:0 0 25px rgba(255,255,255,0.1);border:2px solid white;}
+h1{font-size:32px;margin-bottom:10px;letter-spacing:3px;}
+input,select,button{width:100%;padding:12px;margin:10px 0;border-radius:8px;border:none;font-size:14px;}
+input,select{background:#222;color:white;}
+button{background:white;color:black;font-weight:bold;cursor:pointer;transition:0.3s;}
+button:hover{background:#ccc;transform:scale(1.05);}
+#mensaje{margin-top:10px;font-size:14px;}
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>FARKUAR 💈</h1>
+<p style="font-size:12px;letter-spacing:2px;">ESTILO MONOBLOCKERO</p>
+
+<input type="date" id="fecha">
+<select id="hora"><option value="">Seleccionar horario</option></select>
+<input type="text" id="nombre" placeholder="Tu nombre">
+<input type="text" id="telefono" placeholder="Tu teléfono">
+<button onclick="reservar()">Reservar Turno</button>
+<p id="mensaje"></p>
+</div>
+
+<!-- Firebase versión compat -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+
+<script>
+  // 🔹 Configuración Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyDeZXUm2FHAp9LewIIv9orjvb7Iw_9S3Jo",
+    authDomain: "farkuar-7b4e6.firebaseapp.com",
+    projectId: "farkuar-7b4e6",
+    storageBucket: "farkuar-7b4e6.firebasestorage.app",
+    messagingSenderId: "822551810172",
+    appId: "1:822551810172:web:005e784678510a9e7b79f9",
+    measurementId: "G-739E1D6848"
+  };
+
+  firebase.initializeApp(firebaseConfig);
+  const db = firebase.firestore();
+
+  // 🔹 Crear opciones de horario 10 a 21
+  const selectHora = document.getElementById("hora");
+  for(let i=10;i<=21;i++){
+      let option = document.createElement("option");
+      option.value = i+":00";
+      option.text = i+":00";
+      selectHora.appendChild(option);
+  }
+
+  // 🔹 Función para reservar turno
+  function reservar(){
+    const fecha = document.getElementById("fecha").value;
+    const hora = document.getElementById("hora").value;
+    const nombre = document.getElementById("nombre").value.trim();
+    const telefono = document.getElementById("telefono").value.trim();
+    const mensaje = document.getElementById("mensaje");
+
+    if(!fecha || !hora || !nombre || !telefono){
+        alert("Completa todos los campos");
+        return;
+    }
+
+    const fechaHora = fecha + "_" + hora;
+
+    // Revisar si el turno ya existe
+    db.collection("turnos").where("fechaHora", "==", fechaHora).get()
+      .then(snapshot => {
+        if(!snapshot.empty){
+          mensaje.textContent = "Ese horario ya está ocupado 💈";
+        } else {
+          db.collection("turnos").add({fecha, hora, nombre, telefono, fechaHora})
+            .then(()=>{
+              mensaje.textContent = "Turno reservado con éxito 💈";
+              document.getElementById("nombre").value = "";
+              document.getElementById("telefono").value = "";
+              document.getElementById("hora").value = "";
+              document.getElementById("fecha").value = "";
+            })
+            .catch(err=>{
+              mensaje.textContent = "Error al guardar el turno";
+              console.log(err);
+            });
+        }
+      })
+      .catch(err=>{
+        mensaje.textContent = "Error al conectar con Firebase";
+        console.log(err);
+      });
+  }
+</script>
+
+</body>
+</html>
